@@ -1,6 +1,5 @@
 <template>
   <h1>欢迎来到登录界面</h1>
-  <Welcome msg="jack"></Welcome>
   <el-button @click="goHome">回首页</el-button>
 </template>
 
@@ -10,6 +9,17 @@ export default {
   name: 'login',
   components: {
     Welcome
+  },
+  mounted() {
+    this.$request({
+      method: 'get',
+      url: '/login',
+      data: {
+        name: 'jack'
+      }
+    }).then((res) => {
+      console.log(res)
+    })
   },
   methods: {
     goHome() {
