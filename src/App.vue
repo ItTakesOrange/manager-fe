@@ -4,7 +4,12 @@
 
 <script>
 export default {
-  name: 'app'
+  name: 'app',
+  mounted() {
+    this.$storage.setItem('userInfo', {age: 30, name: 'jack'})
+    console.log('user=>', this.$storage.getItem('userInfo'))
+    // this.$storage.clearAll()
+  }
 }
 </script>
 
