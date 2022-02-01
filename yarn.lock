@@ -7,6 +7,11 @@
   resolved "https://registry.npmmirror.com/@babel/parser/download/@babel/parser-7.16.7.tgz#d372dda9c89fcec340a82630a9f533f2fe15877e"
   integrity sha512-sR4eaSrnM7BV7QPzGfEX5paG/6wrZM3I0HDzfIAK06ESvo9oy3xBuVBxE3MbQaKNhvg8g/ixjMWo2CGpzpHsDA==
 
+"@element-plus/icons@^0.0.11":
+  version "0.0.11"
+  resolved "https://registry.npmmirror.com/@element-plus/icons/-/icons-0.0.11.tgz#9b187c002774548b911850d17fa5fc2f9a515f57"
+  integrity sha512-iKQXSxXu131Ai+I9Ymtcof9WId7kaXvB1+WRfAfpQCW7UiAMYgdNDqb/u0hgTo2Yq3MwC4MWJnNuTBEpG8r7+A==
+
 "@popperjs/core@^2.4.4":
   version "2.11.2"
   resolved "http://registry.npm.baidu-int.com/@popperjs%2fcore/-/core-2.11.2.tgz#830beaec4b4091a9e9398ac50f865ddea52186b9"
@@ -169,11 +174,12 @@ dayjs@1.x:
   resolved "http://registry.npm.baidu-int.com/dayjs/-/dayjs-1.10.7.tgz#2cf5f91add28116748440866a0a1d26f3a6ce468"
   integrity sha1-LPX5Gt0oEWdIRAhmoKHSbzps5Gg=
 
-element-plus@1.0.2-beta.32:
-  version "1.0.2-beta.32"
-  resolved "https://registry.npmmirror.com/element-plus/download/element-plus-1.0.2-beta.32.tgz#228975cfc2255993ef7ccd90238cea9a707f0742"
-  integrity sha512-UzRHAELlnz6aqAi5y4OyNspQvrgspAcK4dxSR3chJXmzXZIvG2tqAwu2Whgte+Cd9fptpFYPIdrfVdznwK7zCA==
+element-plus@^1.0.2-beta.32:
+  version "1.0.2-beta.71"
+  resolved "https://registry.npmmirror.com/element-plus/-/element-plus-1.0.2-beta.71.tgz#148f16d5a0a800549989f7869bbf4d656c652d36"
+  integrity sha512-tlfbRORIav8gJcIpjZI5F6aJIVHIaDuGO6/vKu43lgYq4JS2JPNRTjvrSE2p4f5xLfaFNfOWjCS3sybXLfMg8g==
   dependencies:
+    "@element-plus/icons" "^0.0.11"
     "@popperjs/core" "^2.4.4"
     async-validator "^3.4.0"
     dayjs "1.x"
