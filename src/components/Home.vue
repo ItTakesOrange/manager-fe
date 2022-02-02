@@ -22,7 +22,9 @@
           <div class="menu-fold" @click="toggle">
             <i class="el-icon-s-fold"></i>
           </div>
-          <div class="bread">面包屑</div>
+          <div class="bread">
+            <bread-crumb />
+          </div>
         </div>
         <div class="user-info">
           <el-badge :is-dot="noticeCount > 0" type="danger" class="notice">
@@ -53,11 +55,13 @@
 
 <script>
 import TreeMenu from './Treemenu.vue'
+import BreadCrumb from './BreadCrumb.vue'
 
 export default {
   name: 'Home',
   components: {
-    TreeMenu
+    TreeMenu,
+    BreadCrumb
   },
   data() {
     return {
