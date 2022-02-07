@@ -25,9 +25,9 @@
     <div class="base-table">
       <div class="action">
         <el-button type="primary">新增</el-button>
-        <el-button type="danger">批量删除</el-button>
+        <el-button type="danger" @click="handleBatchDel">批量删除</el-button>
       </div>
-      <el-table :data="userList">
+      <el-table :data="userList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column
           v-for="item in columns"
@@ -35,11 +35,12 @@
           :prop="item.prop"
           :label="item.label"
           :width="item.width"
+          :formatter="item.formatter"
         ></el-table-column>
         <el-table-column label="操作" width="150">
           <template #default="scope">
             <el-button size="mini" @click="handleClick(scope.row)">编辑</el-button>
-            <el-button type="danger" size="mini">删除</el-button>
+            <el-button type="danger" size="mini" @click="handleDel(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -71,6 +72,7 @@ export default {
       pageSize: 10,
       total: 0
     })
+    const checkUsersIds = ref([])
     const columns = reactive([
       {
         label: '用户ID',
@@ -86,11 +88,24 @@ export default {
       },
       {
         label: '用户角色',
-        prop: 'role'
+        prop: 'role',
+        formatter(row, column, value) {
+          return {
+            0: '管理员',
+            1: '普通用户'
+          }[value]
+        }
       },
       {
         label: '用户状态',
-        prop: 'state'
+        prop: 'state',
+        formatter(row, column, value) {
+          return {
+            1: '在职',
+            2: '离职',
+            3: '试用期'
+          }[value]
+        }
       },
       {
         label: '注册时间',
@@ -129,6 +144,35 @@ export default {
       pager.pageNum = current
       getUserList()
     }
+    // 单个删除
+    const handleDel = async (row) => {
+      await proxy.$api.userDel({
+        userIds: [row.userId]
+      })
+      proxy.$message.success('删除成功')
+      getUserList()
+    }
+    // 批量删除
+    const handleBatchDel = async () => {
+      if (checkUsersIds.value.length === 0) {
+        proxy.$message.error('请选择要删除的用户')
+        return
+      }
+      const res = await proxy.$api.userDel({
+        userIds: checkUsersIds.value
+      })
+      if (res.nModified > 0) {
+        proxy.$message.success('删除成功')
+        getUserList()
+      } else {
+        proxy.$message.success('修改失败')
+      }
+    }
+    const handleSelectionChange = (list) => {
+      checkUsersIds.value = list.map(item => {
+        return item.userId
+      })
+    }
     return {
       user,
       userList,
@@ -136,7 +180,10 @@ export default {
       columns,
       handleQuery,
       handleReset,
-      handleCurrentChange
+      handleCurrentChange,
+      handleDel,
+      handleBatchDel,
+      handleSelectionChange
     }
   }
 }
