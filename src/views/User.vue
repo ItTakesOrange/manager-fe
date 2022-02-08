@@ -18,7 +18,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleQuery">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <el-button @click="handleReset('form')">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -39,7 +39,7 @@
         ></el-table-column>
         <el-table-column label="操作" width="150">
           <template #default="scope">
-            <el-button size="mini" @click="handleClick(scope.row)">编辑</el-button>
+            <el-button size="mini" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button type="danger" size="mini" @click="handleDel(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -54,12 +54,20 @@
       />
     </div>
     <el-dialog v-model="showModal" title="用户新增">
-      <el-form ref="formRef" :model="userForm" label-width="100px" :rules="rules">
+      <el-form ref="dialogForm" :model="userForm" label-width="100px" :rules="rules">
         <el-form-item label="用户名" prop="userName">
-          <el-input v-model="userForm.userName" placeholder="请输入用户名称"/>
+          <el-input
+            v-model="userForm.userName"
+            :disabled="action === 'edit'"
+            placeholder="请输入用户名称"
+          />
         </el-form-item>
         <el-form-item label="邮箱" prop="userEmail">
-          <el-input v-model="userForm.userEmail" placeholder="请输入用户邮箱">
+          <el-input
+            v-model="userForm.userEmail"
+            :disabled="action === 'edit'"
+            placeholder="请输入用户邮箱"
+          >
             <template #append>@qq.com</template>
           </el-input>
         </el-form-item>
@@ -77,23 +85,35 @@
           </el-select>
         </el-form-item>
         <el-form-item label="系统角色" prop="roleList">
-          <el-select v-model="userForm.roleList" placeholder="请选择用户系统角色">
-            <el-option></el-option>
+          <el-select
+            v-model="userForm.roleList"
+            placeholder="请选择用户系统角色"
+            multiple
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="role in roleList"
+              :key="role._id"
+              :label="role.roleName"
+              :value="role._id"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="部门" prop="deptId">
           <el-cascader
             v-model="userForm.deptId"
             placeholder="请选择所属部门"
-            :options="[]"
+            :options="deptList"
             :props="{ checkStrictly: true, value: '_id', label: 'deptName' }"
+            clearable
+            style="width: 100%;"
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="showModal = false">取 消</el-button>
-          <el-button type="primary">确 定</el-button>
+          <el-button @click="handleClose">取 消</el-button>
+          <el-button type="primary" @click="handleSubmit">确 定</el-button>
         </span>
       </template>
     </el-dialog>
@@ -101,7 +121,7 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
+import { ref, reactive, onMounted, getCurrentInstance, toRaw } from 'vue'
 
 export default {
   name: 'User',
@@ -119,7 +139,13 @@ export default {
     const checkUsersIds = ref([])
     const showModal = ref(false)
     // 新增用户Form对象
-    const userForm = reactive({})
+    const userForm = reactive({
+      state: 3,
+      mobile: ''
+    })
+    const roleList = ref([])
+    const deptList = ref([])
+    const action = ref('add')
     // 表单校验规则
     const rules = reactive({
       userName: [
@@ -138,7 +164,7 @@ export default {
       ],
       mobile: [
         {
-          pattern: /1{3-9}\d{9}/,
+          pattern: /^1[3-9]\d{9}$/,
           message: '请输入正确的手机号格式',
           trigger: 'blur'
         }
@@ -197,6 +223,8 @@ export default {
     // 初始化接口调用
     onMounted(() => {
       getUserList()
+      getRoleList()
+      getDeptList()
     })
     // 获取用户列表
     const getUserList = async () => {
@@ -214,8 +242,8 @@ export default {
       getUserList()
     }
     // 重置查询表单
-    const handleReset = () => {
-      proxy.$refs.form.resetFields()
+    const handleReset = (form) => {
+      proxy.$refs[form].resetFields()
     }
     // 分页事件处理
     const handleCurrentChange = (current) => {
@@ -254,7 +282,47 @@ export default {
     }
     // 用户新增
     const handleCreate = () => {
+      action.value = 'add'
       showModal.value = true
+    }
+    // 角色列表
+    const getRoleList = async () => {
+      const list = await proxy.$api.getRoleList()
+      roleList.value = list
+    }
+    // 部门列表
+    const getDeptList = async () => {
+      const list = await proxy.$api.getDeptList()
+      deptList.value = list
+    }
+    // 用户弹窗关闭
+    const handleClose = () => {
+      showModal.value = false
+      handleReset('dialogForm')
+    }
+    // 用户提交
+    const handleSubmit = () => {
+      proxy.$refs.dialogForm.validate(async (valid) => {
+        if (valid) {
+          let params = toRaw(userForm)
+          params.userEmail += '@qq.com'
+          params.action = action.value
+          let res = await proxy.$api.userSubmit(params)
+          if (res) {
+            showModal.value = false
+            proxy.$message.success('用户创建成功')
+            handleReset('dialogForm')
+            getUserList()
+          }
+        }
+      })
+    }
+    const handleEdit = (row) => {
+      action.value = 'edit'
+      showModal.value = true
+      proxy.$nextTick(() => {
+        Object.assign(userForm, row)
+      })
     }
     return {
       user,
@@ -264,13 +332,21 @@ export default {
       showModal,
       userForm,
       rules,
+      roleList,
+      deptList,
+      action,
       handleQuery,
       handleReset,
       handleCurrentChange,
       handleDel,
       handleBatchDel,
       handleSelectionChange,
-      handleCreate
+      handleCreate,
+      getRoleList,
+      getDeptList,
+      handleClose,
+      handleSubmit,
+      handleEdit
     }
   }
 }
