@@ -30,16 +30,14 @@ export default {
     return request({
       url: '/users/list',
       method: 'get',
-      data: params,
-      mock: false
+      data: params
     })
   },
   userDel(params) {
     return request({
       url: '/users/delete',
       method: 'post',
-      data: params,
-      mock: true
+      data: params
     })
   },
   getRoleList() {
