@@ -316,13 +316,11 @@ export default {
           let params = toRaw(userForm)
           params.userEmail += '@qq.com'
           params.action = action.value
-          let res = await proxy.$api.userSubmit(params)
-          if (res) {
-            showModal.value = false
-            proxy.$message.success('用户创建成功')
-            handleReset('dialogForm')
-            getUserList()
-          }
+          await proxy.$api.userSubmit(params)
+          showModal.value = false
+          proxy.$message.success('用户创建成功')
+          handleReset('dialogForm')
+          getUserList()
         }
       })
     }

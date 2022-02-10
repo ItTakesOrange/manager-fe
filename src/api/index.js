@@ -61,7 +61,7 @@ export default {
       url: '/users/operate',
       method: 'post',
       data: params,
-      mock: true
+      mock: false
     })
   },
 }
