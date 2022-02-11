@@ -12,14 +12,14 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleQuery">查询</el-button>
+          <el-button type="primary" @click="getMenuList">查询</el-button>
           <el-button @click="handleReset('form')">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
     <div class="base-table">
       <div class="action">
-        <el-button type="primary" @click="handleAdd">新增</el-button>
+        <el-button type="primary" @click="handleAdd(1)">新增</el-button>
       </div>
       <el-table
         :data="menuList"
@@ -36,13 +36,84 @@
         ></el-table-column>
         <el-table-column label="操作" width="220">
           <template #default="scope">
-            <el-button type="primary" size="mini" @click="handleAdd(scope.row)">新增</el-button>
+            <el-button type="primary" size="mini" @click="handleAdd(2, scope.row)">新增</el-button>
             <el-button size="mini" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button type="danger" size="mini" @click="handleDel(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
+    <el-dialog v-model="showModal" title="用户新增">
+      <el-form
+        ref="dialogForm"
+        :model="menuForm"
+        label-width="100px"
+        :rules="rules"
+      >
+        <el-form-item label="父级菜单" prop="parentId">
+          <el-cascader
+            v-model="menuForm.parentId"
+            :options="menuList"
+            :props="{ checkStrictly: true, value: '_id', label: 'menuName' }"
+            clearable
+          />
+          <span>不选，则直接创建一级菜单</span>
+        </el-form-item>
+        <el-form-item label="菜单类型" prop="menuType">
+          <el-radio-group v-model="menuForm.menuType">
+            <el-radio :label="1">菜单</el-radio>
+            <el-radio :label="2">按钮</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="菜单名称" prop="menuName">
+          <el-input v-model="menuForm.menuName" placeholder="请输入菜单名称"></el-input>
+        </el-form-item>
+        <el-form-item
+          v-show="menuForm.menuType === 1"
+          label="菜单图标"
+          prop="icon"
+        >
+          <el-input v-model="menuForm.icon" placeholder="请输入图标"></el-input>
+        </el-form-item>
+        <el-form-item
+          v-show="menuForm.menuType === 1"
+          label="路由地址"
+          prop="path"
+        >
+          <el-input v-model="menuForm.path" placeholder="请输入路由地址"></el-input>
+        </el-form-item>
+        <el-form-item
+          v-show="menuForm.menuType === 2"
+          label="权限标识"
+          prop="menuCode"
+        >
+          <el-input v-model="menuForm.menuCode" placeholder="请输入权限标识"></el-input>
+        </el-form-item>
+        <el-form-item
+          v-show="menuForm.menuType === 1"
+          label="组件路径"
+          prop="component"
+        >
+          <el-input v-model="menuForm.component" placeholder="请输入组件路径"></el-input>
+        </el-form-item>
+        <el-form-item
+          v-show="menuForm.menuType === 1"
+          label="菜单状态"
+          prop="menuState"
+        >
+          <el-radio-group v-model="menuForm.menuState">
+            <el-radio :label="1">正常</el-radio>
+            <el-radio :label="2">停用</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="handleClose">取 消</el-button>
+          <el-button type="primary" @click="handleSubmit">确 定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -107,7 +178,28 @@ export default {
             return utils.formatDate(new Date(value))
           }
         }
-      ]
+      ],
+      showModal: false,
+      menuForm: {
+        menuType: 1,
+        menuState: 1
+      },
+      action: '',
+      rules: {
+        menuName: [
+          {
+            required: true,
+            message: '请输入菜单名称',
+            trigger: 'blur'
+          },
+          {
+            min: 2,
+            max: 10,
+            message: '长度在2-8个字符',
+            trigger: 'blur'
+          }
+        ]
+      }
     }
   },
   mounted() {
@@ -116,22 +208,42 @@ export default {
   methods: {
     async getMenuList() {
       try {
-        const list = await this.$api.getMenuList()
+        const list = await this.$api.getMenuList(this.queryForm)
         this.menuList = list
       } catch (e) {
         throw new Error(e)
       }
     },
-    handleQuery() {
-    },
     handleReset(form) {
       this.$refs[form].resetFields()
     },
-    handleAdd() {
+    handleAdd(type, row) {
+      this.showModal = true
+      this.action = 'add'
+      if (type === 2) {
+        this.menuForm.parentId = [...row.parentId, row._id].filter(item => item)
+      }
     },
     handleEdit() {
     },
     handleDel() {
+    },
+    handleSubmit() {
+      this.$refs.dialogForm.validate(async (valid) => {
+        if (valid) {
+          const { action, menuForm } = this
+          const params = { ...menuForm, action }
+          await this.$api.menuSubmit(params)
+          this.showModal = false
+          this.$message.success('提交成功')
+          this.handleReset('dialogForm')
+          this.getMenuList()
+        }
+      })
+    },
+    handleClose() {
+      this.showModal = false
+      this.handleReset('dialogForm')
     }
   }
 }
