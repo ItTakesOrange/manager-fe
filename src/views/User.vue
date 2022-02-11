@@ -129,7 +129,7 @@ export default {
   setup() {
     const { proxy } = getCurrentInstance()
     const user = reactive({
-      state: 0
+      state: 1
     })
     const userList = ref([])
     const pager = reactive({
