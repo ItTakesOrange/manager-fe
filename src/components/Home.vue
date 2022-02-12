@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import TreeMenu from './Treemenu.vue'
+import TreeMenu from './TreeMenu.vue'
 import BreadCrumb from './BreadCrumb.vue'
 
 export default {

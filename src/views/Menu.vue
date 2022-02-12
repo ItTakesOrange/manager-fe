@@ -243,7 +243,7 @@ export default {
           const params = { ...menuForm, action }
           await this.$api.menuSubmit(params)
           this.showModal = false
-          this.$message.success('提交成功')
+          this.$message.success('操作成功')
           this.handleReset('dialogForm')
           this.getMenuList()
         }
