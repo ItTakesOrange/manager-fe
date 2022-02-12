@@ -224,9 +224,17 @@ export default {
         this.menuForm.parentId = [...row.parentId, row._id].filter(item => item)
       }
     },
-    handleEdit() {
+    handleEdit(row) {
+      this.showModal = true
+      this.action = 'edit'
+      this.$nextTick(() => {
+        Object.assign(this.menuForm, row)
+      })
     },
-    handleDel() {
+    async handleDel(row) {
+      await this.$api.menuSubmit({ _id: row._id, action: 'delete' })
+      this.$message.success('删除成功')
+      this.getMenuList()
     },
     handleSubmit() {
       this.$refs.dialogForm.validate(async (valid) => {
