@@ -232,7 +232,7 @@ export default {
     // 初始化接口调用
     onMounted(() => {
       getUserList()
-      getRoleList()
+      getRoleAllList()
       getDeptList()
     })
     // 获取用户列表
@@ -295,8 +295,8 @@ export default {
       showModal.value = true
     }
     // 角色列表
-    const getRoleList = async () => {
-      const list = await proxy.$api.getRoleList()
+    const getRoleAllList = async () => {
+      const list = await proxy.$api.getRoleAllList()
       roleList.value = list
     }
     // 部门列表
@@ -349,7 +349,7 @@ export default {
       handleBatchDel,
       handleSelectionChange,
       handleCreate,
-      getRoleList,
+      getRoleAllList,
       getDeptList,
       handleClose,
       handleSubmit,
