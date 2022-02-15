@@ -13,7 +13,7 @@
     </div>
     <div class="base-table">
       <div class="action">
-        <el-button type="primary">创建</el-button>
+        <el-button type="primary" @click="handleAdd">创建</el-button>
       </div>
       <el-table :data="roleList">
         <el-table-column
@@ -26,7 +26,7 @@
         />
         <el-table-column label="操作" width="260">
           <template #default="scope">
-            <el-button type="primary" size="mini">编辑</el-button>
+            <el-button type="primary" size="mini" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button size="mini">设置权限</el-button>
             <el-button type="danger" size="mini" @click="handleDel(scope.row)">删除</el-button>
           </template>
@@ -41,6 +41,27 @@
         @current-change="handleCurrentChange"
       />
     </div>
+    <el-dialog v-model="showModal" title="角色新增">
+      <el-form
+        ref="dialogForm"
+        :model="roleForm"
+        label-width="100px"
+        :rules="rules"
+      >
+        <el-form-item label="角色名称" prop="roleName">
+          <el-input v-model="roleForm.roleName" placeholder="请输入角色名称"></el-input>
+        </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="roleForm.remark" type="textarea" :rows="2" placeholder="请输入备注"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="handleClose">取 消</el-button>
+          <el-button type="primary" @click="handleSubmit">确 定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -80,7 +101,19 @@ export default {
             return utils.formatDate(new Date(value))
           }
         }
-      ]
+      ],
+      showModal: false,
+      action: '',
+      roleForm: {},
+      rules: {
+        roleName: [
+          {
+            required: true,
+            message: '请输入角色名称',
+            trigger: 'blur'
+          }
+        ]
+      }
     }
   },
   mounted() {
@@ -99,10 +132,40 @@ export default {
     handleReset(form) {
       this.$refs[form].resetFields()
     },
+    handleAdd() {
+      this.action = 'add'
+      this.showModal = true
+    },
+    handleEdit(row) {
+      this.action = 'edit'
+      this.showModal = true
+      this.$nextTick(() => {
+        Object.assign(this.roleForm, row)
+      })
+    },
     async handleDel(row) {
-      await this.$api.menuSubmit({ _id: row._id, action: 'delete' })
+      await this.$api.roleOperate({ _id: row._id, action: 'delete' })
       this.$message.success('删除成功')
-      this.getMenuList()
+      this.getRoleList()
+    },
+    handleClose() {
+      this.showModal = false
+      this.handleReset('dialogForm')
+    },
+    handleSubmit() {
+      this.$refs.dialogForm.validate(async (valid) => {
+        if (valid) {
+          const { roleForm, action } = this
+          const params = { ...roleForm, action }
+          const res = await this.$api.roleOperate(params)
+          if (res) {
+            this.showModal = false
+            this.$message.success('操作成功')
+            this.handleReset('dialogForm')
+            this.getRoleList()
+          }
+        }
+      })
     },
     handleCurrentChange(current) {
       this.pager.pageNum = current
