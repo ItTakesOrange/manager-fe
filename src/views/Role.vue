@@ -27,7 +27,7 @@
         <el-table-column label="操作" width="260">
           <template #default="scope">
             <el-button type="primary" size="mini" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button size="mini">设置权限</el-button>
+            <el-button size="mini" @click="handleOpenPermission(scope.row)">设置权限</el-button>
             <el-button type="danger" size="mini" @click="handleDel(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -59,6 +59,29 @@
         <span class="dialog-footer">
           <el-button @click="handleClose">取 消</el-button>
           <el-button type="primary" @click="handleSubmit">确 定</el-button>
+        </span>
+      </template>
+    </el-dialog>
+    <el-dialog v-model="showPermission" title="权限设置">
+      <el-form label-width="100px">
+        <el-form-item label="角色名称">
+          {{ curRoleName }}
+        </el-form-item>
+        <el-form-item label="选择权限">
+          <el-tree
+            ref="tree"
+            :data="menuList"
+            show-checkbox
+            node-key="_id"
+            default-expand-all
+            :props="{ label: 'menuName' }"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showPermission = false">取 消</el-button>
+          <el-button type="primary" @click="handlePremissionSubmit">确 定</el-button>
         </span>
       </template>
     </el-dialog>
@@ -113,11 +136,16 @@ export default {
             trigger: 'blur'
           }
         ]
-      }
+      },
+      showPermission: false,
+      curRoleId: '',
+      curRoleName: '',
+      menuList: []
     }
   },
   mounted() {
     this.getRoleList()
+    this.getMenuList()
   },
   methods: {
     async getRoleList() {
@@ -125,6 +153,13 @@ export default {
         const { list, page } = await this.$api.getRoleList(this.queryForm)
         this.roleList = list
         this.pager.total = page.total
+      } catch (e) {
+        throw new Error(e)
+      }
+    },
+    async getMenuList() {
+      try {
+        this.menuList = await this.$api.getMenuList()
       } catch (e) {
         throw new Error(e)
       }
@@ -169,6 +204,39 @@ export default {
     },
     handleCurrentChange(current) {
       this.pager.pageNum = current
+      this.getRoleList()
+    },
+    handleOpenPermission(row) {
+      this.curRoleId = row._id
+      this.curRoleName = row.roleName
+      this.showPermission = true
+      let { checkedKeys } = row.permissionList
+      this.$nextTick(() => {
+        this.$refs.tree.setCheckedKeys(checkedKeys)
+      })
+    },
+    async handlePremissionSubmit() {
+      const nodes = this.$refs.tree.getCheckedNodes()
+      const halfKeys = this.$refs.tree.getHalfCheckedKeys()
+      let checkedKeys = []
+      let parentKeys = []
+      nodes.forEach(node => {
+        if (!node.children) {
+          checkedKeys.push(node._id)
+        } else {
+          parentKeys.push(node._id)
+        }
+      })
+      const params = {
+        _id: this.curRoleId,
+        permissionList: {
+          checkedKeys,
+          parentKeys: parentKeys.concat(halfKeys)
+        }
+      }
+      await this.$api.updatePermission(params)
+      this.showPermission = false
+      this.$message.success('设置成功')
       this.getRoleList()
     }
   }
