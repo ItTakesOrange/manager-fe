@@ -162,7 +162,10 @@ export default {
   methods: {
     async getRoleList() {
       try {
-        const { list, page } = await this.$api.getRoleList(this.queryForm)
+        const { list, page } = await this.$api.getRoleList({
+          ...this.queryForm,
+          ...this.pager
+        })
         this.roleList = list
         this.pager.total = page.total
       } catch (e) {
