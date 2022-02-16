@@ -115,7 +115,18 @@ export default {
         },
         {
           label: '权限列表',
-          prop: 'menuType'
+          prop: 'permissionList',
+          formatter: (row, column, value) => {
+            let names = []
+            let list = value.halfCheckedKeys || []
+            list.forEach(key => {
+              const name = this.actionMap[key]
+              if (name) {
+                names.push(name);
+              }
+            })
+            return names.join(',')
+          }
         },
         {
           label: '创建时间',
@@ -140,7 +151,8 @@ export default {
       showPermission: false,
       curRoleId: '',
       curRoleName: '',
-      menuList: []
+      menuList: [],
+      actionMap: {}
     }
   },
   mounted() {
@@ -159,10 +171,27 @@ export default {
     },
     async getMenuList() {
       try {
-        this.menuList = await this.$api.getMenuList()
+        const list = await this.$api.getMenuList()
+        this.menuList = list
+        this.getActionMap(list)
       } catch (e) {
         throw new Error(e)
       }
+    },
+    getActionMap(list) {
+      let actionMap = {}
+      const deep = (arr) => {
+        while(arr.length) {
+          let item = arr.pop()
+          if (item.children && item.action) {
+            actionMap[item._id] = item.menuName
+          } else if (item.children && item.children.length) {
+            deep(item.children)
+          }
+        }
+      }
+      deep(JSON.parse(JSON.stringify(list)))
+      this.actionMap = actionMap
     },
     handleReset(form) {
       this.$refs[form].resetFields()
