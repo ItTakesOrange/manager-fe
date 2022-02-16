@@ -134,6 +134,13 @@ export default {
           formatter(row, column, value) {
             return utils.formatDate(new Date(value))
           }
+        },
+        {
+          label: '更新时间',
+          prop: 'updateTime',
+          formatter(row, column, value) {
+            return utils.formatDate(new Date(value))
+          }
         }
       ],
       showModal: false,
@@ -200,7 +207,7 @@ export default {
       this.$refs[form].resetFields()
     },
     handleAdd() {
-      this.action = 'add'
+      this.action = 'create'
       this.showModal = true
     },
     handleEdit(row) {
@@ -208,6 +215,11 @@ export default {
       this.showModal = true
       this.$nextTick(() => {
         Object.assign(this.roleForm, row)
+        this.roleForm = {
+          _id: row._id,
+          roleName: row.roleName,
+          remark: row.remark
+        }
       })
     },
     async handleDel(row) {
