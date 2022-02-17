@@ -275,7 +275,7 @@ export default {
         _id: this.curRoleId,
         permissionList: {
           checkedKeys,
-          parentKeys: parentKeys.concat(halfKeys)
+          halfCheckedKeys: parentKeys.concat(halfKeys)
         }
       }
       await this.$api.updatePermission(params)
