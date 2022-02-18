@@ -92,10 +92,6 @@ export default {
         deptName: ''
       },
       deptList: [],
-      pager: {
-        pageNum: 1,
-        pageSize: 10
-      },
       columns: [
         {
           label: '部门名称',
@@ -122,8 +118,16 @@ export default {
       ],
       action: '',
       showModal: false,
-      deptForm: {},
-      userList: [],
+      deptForm: {
+        parentId: [null]
+      },
+      userList: [
+        {
+          userId: 10001,
+          userName: 'admin',
+          userEmail: 'admin@qq.com'
+        }
+      ],
       rules: {
         parentId: [
           {
@@ -155,10 +159,7 @@ export default {
   },
   methods: {
     async getDeptList() {
-      const list = await this.$api.getDeptList({
-        ...this.queryForm,
-        ...this.pager
-      })
+      const list = await this.$api.getDeptList(this.queryForm)
       this.deptList = list
     },
     async getAllUserList() {
@@ -199,12 +200,10 @@ export default {
         if (valid) {
           const params = { ...this.deptForm, action: this.action }
           delete params.user
-          const res = await this.$api.deptOperate(params)
-          if (res) {
-            this.$message.success('操作成功')
-            this.handleClose()
-            this.getDeptList()
-          }
+          await this.$api.deptOperate(params)
+          this.$message.success('操作成功')
+          this.handleClose()
+          this.getDeptList()
         }
       })
     }
