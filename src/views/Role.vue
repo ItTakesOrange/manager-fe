@@ -2,7 +2,7 @@
   <div class="role-manager">
     <div class="query-form">
       <el-form ref="form" :model="queryForm" :inline="true">
-        <el-form-item label="菜单名称" prop="roleName">
+        <el-form-item label="角色名称" prop="roleName">
           <el-input v-model="queryForm.roleName" placeholder="请输入角色名称"></el-input>
         </el-form-item>
         <el-form-item>
