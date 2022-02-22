@@ -13,6 +13,19 @@ console.log('config=>', config)
 console.log('环境配置=>', import.meta.env)
 
 const app = createApp(App)
+app.directive('has', {
+  beforeMount(el, binding) {
+    let actionList = storage.getItem('actionList')
+    let value = binding.value
+    let hasPermission = actionList.includes(value)
+    if (!hasPermission) {
+      el.style = 'display: none'
+      setTimeout(() => {
+        el.parentNode.removeChild(el)
+      }, 0);
+    }
+  }
+})
 app.config.globalProperties.$request = request
 app.config.globalProperties.$api = api
 app.config.globalProperties.$storage = storage
