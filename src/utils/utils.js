@@ -18,5 +18,27 @@ export default {
       }
     }
     return fmt
+  },
+  generateRoute(menuList) {
+    let routes = []
+    const deep = function(list) {
+      while(list.length) {
+        let item = list.pop()
+        if (item.action) {
+          routes.push({
+            name: item.component,
+            path: item.path,
+            meta: {
+              title: item.menuName
+            },
+            component: item.component
+          })
+        } else if (item.children) {
+          deep(item.children)
+        }
+      }
+    }
+    deep(menuList)
+    return routes
   }
 }
