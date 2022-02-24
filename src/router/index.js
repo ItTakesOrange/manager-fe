@@ -65,12 +65,14 @@ async function loadAsyncRoutes() {
 
 await loadAsyncRoutes()
 
+/*
 function checkPermission(path) {
   return router.getRoutes().filter(route => route.path === path).length > 0
 }
+*/
 
 router.beforeEach(function(to, from, next) {
-  if (checkPermission(to.path)) {
+  if (router.hasRoute(to.name)) {
     document.title = to.meta.title
     next()
   } else {
