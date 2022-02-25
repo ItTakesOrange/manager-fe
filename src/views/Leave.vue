@@ -32,9 +32,15 @@
           :formatter="item.formatter"
         ></el-table-column>
         <el-table-column label="操作" width="150">
-          <template #default>
-            <el-button size="mini">查看</el-button>
-            <el-button type="danger" size="mini">作废</el-button>
+          <template #default="scope">
+            <el-button size="mini" @click="handleDetail(scope.row)">查看</el-button>
+            <el-button
+              v-if="[1, 2].includes(scope.row.applyState)"
+              type="danger"
+              size="mini"
+              @click="handleDelete(scope.row._id)"
+              >作废</el-button
+            >
           </template>
         </el-table-column>
       </el-table>
@@ -102,6 +108,40 @@
           <el-button size="mini" @click="handleClose">取 消</el-button>
           <el-button type="primary" size="mini" @click="handleSubmit">确 定</el-button>
       </template>
+    </el-dialog>
+    <el-dialog
+      v-model="showDetailModal"
+      title="休假详情"
+      destroy-on-close
+    >
+      <el-steps
+        :active="detail.applyState > 2 ? 3 : detail.applyState"
+        align-center
+      >
+        <el-step title="待审批"></el-step>
+        <el-step title="审批中"></el-step>
+        <el-step title="审批通过/审批拒绝"></el-step>
+      </el-steps>
+      <el-form label-width="120px" label-suffix=":">
+        <el-form-item label="休假类型">
+          {{ detail.applyTypeName }}
+        </el-form-item>
+        <el-form-item label="休假时间">
+          {{ detail.time }}
+        </el-form-item>
+        <el-form-item label="休假时长">
+          {{ detail.leaveTime }}
+        </el-form-item>
+        <el-form-item label="休假原因">
+          {{ detail.reasons }}
+        </el-form-item>
+        <el-form-item label="审批状态">
+          {{ detail.applyStateName }}
+        </el-form-item>
+        <el-form-item label="审批人">
+          {{ detail.curAuditUserName }}
+        </el-form-item>
+      </el-form>
     </el-dialog>
   </div>
 </template>
@@ -198,6 +238,8 @@ export default {
     // create: 创建 delete: 作废
     const action = ref('create')
     const showModal = ref(false)
+    const showDetailModal = ref(false)
+    const detail = ref({})
     const rules = {
       startTime: [
         {
@@ -287,6 +329,39 @@ export default {
         }
       })
     }
+    const handleDetail = (row) => {
+      let data = {
+        ...row
+      }
+      data.applyTypeName = {
+        1: '事假',
+        2: '调休',
+        3: '年假'
+      }[row.applyType]
+      data.time = (
+        utils.formatDate(new Date(row.startTime), 'yyyy-MM-dd') +
+        '到' +
+        utils.formatDate(new Date(row.endTime), 'yyyy-MM-dd')
+      )
+      data.applyStateName = {
+        1: '待审批',
+        2: '审批中',
+        3: '审批拒绝',
+        4: '审批通过',
+        5: '作废'
+      }[row.applyState]
+      detail.value = data
+      showDetailModal.value = true
+    }
+    const handleDelete = async (_id) => {
+      try {
+        let params = { _id, action: 'delete' }
+        await proxy.$api.leaveOperate(params)
+        proxy.$message.success('删除成功')
+      } catch (error) {
+        console.error('handleDelete error:', error)
+      }
+    }
     return {
       queryForm,
       pager,
@@ -295,13 +370,17 @@ export default {
       leaveForm,
       showModal,
       rules,
+      showDetailModal,
+      detail,
       getApplyList,
       handleReset,
       handleCurrentChange,
       handleApply,
       handleClose,
       handleSubmit,
-      handleDateChange
+      handleDateChange,
+      handleDetail,
+      handleDelete
     }
   }
 }
