@@ -27,7 +27,7 @@
           </div>
         </div>
         <div class="user-info">
-          <el-badge :is-dot="noticeCount > 0" type="danger" class="notice">
+          <el-badge :is-dot="noticeCount > 0" type="danger" class="notice" @click="goApprove">
             <i class="el-icon-bell"></i>
           </el-badge>
           <el-dropdown @command="handleLogout">
@@ -65,9 +65,13 @@ export default {
     return {
       isCollapse: false,
       userInfo: this.$store.state.userInfo,
-      noticeCount: 0,
       userMenu: [],
       activeMenu: location.hash.slice(1)
+    }
+  },
+  computed: {
+    noticeCount() {
+      return this.$store.state.noticeCount
     }
   },
   mounted() {
@@ -87,7 +91,7 @@ export default {
     async getNoticeCount() {
       try {
         const count = await this.$api.noticeCount()
-        this.noticeCount = count
+        this.$store.commit('saveNoticeCount', count)
       } catch(error) {
         console.error(error)
       }
@@ -100,6 +104,11 @@ export default {
         this.userMenu = menuList
       } catch(error) {
         console.error(error)
+      }
+    },
+    goApprove() {
+      if (this.noticeCount > 0) {
+        this.$router.push('/audit/approve')
       }
     }
   }
@@ -166,6 +175,7 @@ export default {
         .notice {
           line-height: 30px;
           margin-right: 15px;
+          cursor: pointer;
         }
         .user-link {
           color: #409eff;
