@@ -50,18 +50,19 @@
     </div>
     <el-dialog
       v-model="showDetailModal"
-      title="休假详情"
+      title="审批详情"
       destroy-on-close
     >
-      <el-steps
-        :active="detail.applyState > 2 ? 3 : detail.applyState"
-        align-center
+      <el-form
+        ref="dialogForm"
+        :model="auditForm"
+        :rules="rules"
+        label-width="120px"
+        label-suffix=":"
       >
-        <el-step title="待审批"></el-step>
-        <el-step title="审批中"></el-step>
-        <el-step title="审批通过/审批拒绝"></el-step>
-      </el-steps>
-      <el-form label-width="120px" label-suffix=":">
+        <el-form-item label="申请人">
+          {{ detail.applyUser.userName }}
+        </el-form-item>
         <el-form-item label="休假类型">
           {{ detail.applyTypeName }}
         </el-form-item>
@@ -80,7 +81,21 @@
         <el-form-item label="审批人">
           {{ detail.curAuditUserName }}
         </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input
+            v-model="auditForm.remark"
+            type="textarea"
+            row="3"
+            placeholder="请输入审核备注"
+          />
+        </el-form-item>
       </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="handleApprove('pass')">审核通过</el-button>
+          <el-button type="primary" @click="handleApprove('refuse')">驳回</el-button>
+        </span>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -184,30 +199,17 @@ export default {
     const detail = ref({})
     const userInfo = proxy.$store.state.userInfo
     const rules = {
-      startTime: [
-        {
-          type: 'date',
-          required: true,
-          message: '请输入开始日期',
-          trigger: 'change'
-        }
-      ],
-      endTime: [
-        {
-          type: 'date',
-          required: true,
-          message: '请输入结束日期',
-          trigger: 'change'
-        }
-      ],
-      reasons: [
+      remark: [
         {
           required: true,
-          message: '请输入休假原因',
-          trigger: ['change', 'blur']
+          message: '请输入备注',
+          trigger: 'blur'
         }
       ]
     }
+    const auditForm = reactive({
+      remark: ''
+    })
     // 初始化接口调用
     onMounted(() => {
       getApplyList()
@@ -232,19 +234,10 @@ export default {
       pager.pageNum = current
       getApplyList()
     }
-    // 获取休假时长
-    const handleDateChange = (key, val) => {
-      let { startTime, endTime } = leaveForm
-      if (!startTime || !endTime) return
-      if (startTime > endTime) {
-        proxy.$message.error('开始日期不能晚于结束日期')
-        leaveForm.leaveTime = '0天'
-        setTimeout(() => {
-          leaveForm[key] = ''
-        }, 0)
-      } else {
-        leaveForm.leaveTime = (endTime - startTime) / (24 * 60 * 60 * 1000) + 1 + '天'
-      }
+    // 弹框关闭
+    const handleClose = () => {
+      showDetailModal.value = false
+      handleReset('dialogForm')
     }
     const handleDetail = (row) => {
       let data = {
@@ -270,6 +263,25 @@ export default {
       detail.value = data
       showDetailModal.value = true
     }
+    const handleApprove = (action) => {
+      proxy.$refs.dialogForm.validate(async (valid) => {
+        if (valid) {
+          try {
+            let params = {
+              _id: detail.value._id,
+              remark: auditForm.remark,
+              action
+            }
+            await proxy.$api.leaveApprove(params)
+            handleClose()
+            proxy.$message.success('处理成功')
+            getApplyList()
+          } catch (error) {
+            console.error('handleApprove error:', error)
+          }
+        }
+      })
+    }
     return {
       queryForm,
       pager,
@@ -280,11 +292,12 @@ export default {
       showDetailModal,
       detail,
       userInfo,
+      auditForm,
       getApplyList,
       handleReset,
       handleCurrentChange,
-      handleDateChange,
-      handleDetail
+      handleDetail,
+      handleApprove
     }
   }
 }
