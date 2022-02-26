@@ -1,5 +1,5 @@
 <template>
-  <div class="leave-manager">
+  <div class="approve-manager">
     <div class="query-form">
       <el-form ref="form" :model="queryForm" :inline="true">
         <el-form-item label="审批状态" prop="applyState">
@@ -19,9 +19,7 @@
       </el-form>
     </div>
     <div class="base-table">
-      <div class="action">
-        <el-button type="primary" @click="handleApply">申请休假</el-button>
-      </div>
+      <div class="action"></div>
       <el-table :data="applyList">
         <el-table-column
           v-for="item in columns"
@@ -33,14 +31,11 @@
         ></el-table-column>
         <el-table-column label="操作" width="150">
           <template #default="scope">
-            <el-button size="mini" @click="handleDetail(scope.row)">查看</el-button>
             <el-button
-              v-if="[1, 2].includes(scope.row.applyState)"
-              type="danger"
+              v-if="scope.row.curAuditUserName === userInfo.userName && [1, 2].includes(scope.row.applyState)"
               size="mini"
-              @click="handleDelete(scope.row._id)"
-              >作废</el-button
-            >
+              @click="handleDetail(scope.row)"
+            >审批</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -53,62 +48,6 @@
         @current-change="handleCurrentChange"
       />
     </div>
-    <el-dialog v-model="showModal" title="申请休假" width="70%">
-      <el-form
-        ref="dialogForm"
-        :model="leaveForm"
-        label-width="120px"
-        :rules="rules"
-      >
-        <el-form-item label="休假类型" prop="applyType" required>
-          <el-select v-model="leaveForm.applyType">
-            <el-option label="事假" :value="1"></el-option>
-            <el-option label="调休" :value="2"></el-option>
-            <el-option label="年假" :value="3"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="休假时间" required>
-          <el-row>
-            <el-col :span="8">
-              <el-form-item prop="startTime">
-                <el-date-picker
-                  v-model="leaveForm.startTime"
-                  type="date"
-                  placeholder="选择开始日期"
-                  @change="(val) => handleDateChange('startTime', val)"
-                />
-              </el-form-item>
-            </el-col>
-            <el-col :span="1">-</el-col>
-            <el-col :span="8">
-              <el-form-item prop="endTime">
-                <el-date-picker
-                  v-model="leaveForm.endTime"
-                  type="date"
-                  placeholder="选择结束日期"
-                  @change="(val) => handleDateChange('endTime', val)"
-                />
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </el-form-item>
-        <el-form-item label="休假时长" prop="leaveTime" required>
-          {{ leaveForm.leaveTime }}
-        </el-form-item>
-        <el-form-item label="休假原因" prop="reasons">
-          <el-input
-            v-model="leaveForm.reasons"
-            type="textarea"
-            row="3"
-            placeholder="请输入休假原因"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-          <el-button size="mini" @click="handleClose">取 消</el-button>
-          <el-button type="primary" size="mini" @click="handleSubmit">确 定</el-button>
-      </template>
-    </el-dialog>
     <el-dialog
       v-model="showDetailModal"
       title="休假详情"
@@ -151,7 +90,7 @@ import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
 import utils from '../utils/utils'
 
 export default {
-  name: 'Leave',
+  name: 'Approve',
   setup() {
     const { proxy } = getCurrentInstance()
     const queryForm = reactive({
@@ -166,6 +105,12 @@ export default {
       {
         label: '单号',
         prop: 'orderNo'
+      },
+      {
+        label: '申请人',
+        formatter(row) {
+          return row.applyUser.userName
+        }
       },
       {
         label: '休假时间',
@@ -235,11 +180,9 @@ export default {
       leaveTime: '0天',
       reasons: ''
     })
-    // create: 创建 delete: 作废
-    const action = ref('create')
-    const showModal = ref(false)
     const showDetailModal = ref(false)
     const detail = ref({})
+    const userInfo = proxy.$store.state.userInfo
     const rules = {
       startTime: [
         {
@@ -272,7 +215,7 @@ export default {
     // 获取申请列表
     const getApplyList = async () => {
       try {
-        const params = { ...queryForm, ...pager }
+        const params = { ...queryForm, ...pager, type: 'approve' }
         const { list, page } = await proxy.$api.getApplyList(params)
         applyList.value = list
         pager.total = page.total
@@ -289,16 +232,6 @@ export default {
       pager.pageNum = current
       getApplyList()
     }
-    // 点击申请休假-展示弹框
-    const handleApply = () => {
-      showModal.value = true
-      action.value = 'create'
-    }
-    // 弹框关闭
-    const handleClose = () => {
-      showModal.value = false
-      handleReset('dialogForm')
-    }
     // 获取休假时长
     const handleDateChange = (key, val) => {
       let { startTime, endTime } = leaveForm
@@ -312,22 +245,6 @@ export default {
       } else {
         leaveForm.leaveTime = (endTime - startTime) / (24 * 60 * 60 * 1000) + 1 + '天'
       }
-    }
-    // 申请提交
-    const handleSubmit = () => {
-      proxy.$refs.dialogForm.validate(async (valid) => {
-        if (valid) {
-          try {
-            let params = { ...leaveForm, action: action.value }
-            await proxy.$api.leaveOperate(params)
-            proxy.$message.success('创建成功')
-            handleClose()
-            getApplyList()
-          } catch (error) {
-            console.error('handleSubmit error:', error)
-          }
-        }
-      })
     }
     const handleDetail = (row) => {
       let data = {
@@ -353,35 +270,21 @@ export default {
       detail.value = data
       showDetailModal.value = true
     }
-    const handleDelete = async (_id) => {
-      try {
-        let params = { _id, action: 'delete' }
-        await proxy.$api.leaveOperate(params)
-        proxy.$message.success('删除成功')
-        getApplyList()
-      } catch (error) {
-        console.error('handleDelete error:', error)
-      }
-    }
     return {
       queryForm,
       pager,
       columns,
       applyList,
       leaveForm,
-      showModal,
       rules,
       showDetailModal,
       detail,
+      userInfo,
       getApplyList,
       handleReset,
       handleCurrentChange,
-      handleApply,
-      handleClose,
-      handleSubmit,
       handleDateChange,
-      handleDetail,
-      handleDelete
+      handleDetail
     }
   }
 }
