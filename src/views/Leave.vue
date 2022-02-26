@@ -358,6 +358,7 @@ export default {
         let params = { _id, action: 'delete' }
         await proxy.$api.leaveOperate(params)
         proxy.$message.success('删除成功')
+        getApplyList()
       } catch (error) {
         console.error('handleDelete error:', error)
       }
