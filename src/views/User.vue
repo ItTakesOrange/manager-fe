@@ -1,26 +1,7 @@
 <template>
   <div class="user-manager">
     <div class="query-form">
-      <el-form ref="form" :model="user" :inline="true">
-        <el-form-item label="用户ID" prop="userId">
-          <el-input v-model="user.userId" placeholder="请输入用户ID"></el-input>
-        </el-form-item>
-        <el-form-item label="用户名称" prop="userName">
-          <el-input v-model="user.userName" placeholder="请输入用户名称"></el-input>
-        </el-form-item>
-        <el-form-item label="状态" prop="state">
-          <el-select v-model="user.state">
-            <el-option :value="0" label="所有"></el-option>
-            <el-option :value="1" label="在职"></el-option>
-            <el-option :value="2" label="离职"></el-option>
-            <el-option :value="3" label="试用期"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleQuery">查询</el-button>
-          <el-button @click="handleReset('form')">重置</el-button>
-        </el-form-item>
-      </el-form>
+      <query-form v-model="user" :form="form" @handleQuery="handleQuery" />
     </div>
     <div class="base-table">
       <div class="action">
@@ -128,7 +109,45 @@ export default {
   name: 'User',
   setup() {
     const { proxy } = getCurrentInstance()
-    const user = reactive({
+    const form = [
+      {
+        type: 'input',
+        label: '用户ID',
+        model: 'userId',
+        placeholder: '请输入用户ID'
+      },
+      {
+        type: 'input',
+        label: '用户名称',
+        model: 'userName',
+        placeholder: '请输入用户名称'
+      },
+      {
+        type: 'select',
+        label: '状态',
+        model: 'state',
+        placeholder: '请选择状态',
+        options: [
+          {
+            value: 0,
+            label: '所有'
+          },
+          {
+            value: 1,
+            label: '在职'
+          },
+          {
+            value: 2,
+            label: '离职'
+          },
+          {
+            value: 3,
+            label: '试用期'
+          }
+        ]
+      }
+    ]
+    const user = ref({
       state: 1
     })
     const userList = ref([])
@@ -238,7 +257,7 @@ export default {
     // 获取用户列表
     const getUserList = async () => {
       try {
-        const params = { ...user, ...pager }
+        const params = { ...user.value, ...pager }
         const { list, page } = await proxy.$api.getUserList(params)
         userList.value = list
         pager.total = page.total
@@ -332,6 +351,7 @@ export default {
       })
     }
     return {
+      form,
       user,
       userList,
       pager,

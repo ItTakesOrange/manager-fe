@@ -8,6 +8,7 @@ import request from './utils/request'
 import storage from './utils/storage'
 import api from './api'
 import store from './store'
+import QueryForm from '../packages/QueryForm'
 
 console.log('config=>', config)
 console.log('环境配置=>', import.meta.env)
@@ -29,4 +30,9 @@ app.directive('has', {
 app.config.globalProperties.$request = request
 app.config.globalProperties.$api = api
 app.config.globalProperties.$storage = storage
-app.use(router).use(store).use(ElementPlus, {size: 'small'}).mount('#app')
+app
+  .use(router)
+  .use(store)
+  .use(ElementPlus, { size: 'small' })
+  .use(QueryForm)
+  .mount('#app')
