@@ -10,14 +10,21 @@
           type="selection"
           width="55"
         />
-        <el-table-column v-else v-bind="item"></el-table-column>
+        <el-table-column v-else-if="!item.type" v-bind="item"></el-table-column>
+        <el-table-column v-else-if="item.type === 'action'" v-bind="item">
+          <template #default="scope">
+            <el-button
+              v-for="(btn, index) in item.list"
+              :key="btn.text"
+              :type="btn.type || 'text'"
+              size="mini"
+              @click="handleAction(index, scope.row)"
+            >
+              {{ btn.text }}
+            </el-button>
+          </template>
+        </el-table-column>
       </template>
-      <!-- <el-table-column label="操作" width="150">
-        <template #default="scope">
-          <el-button v-has="'user-edit'" size="mini" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button v-has="'user-delete'" type="danger" size="mini" @click="handleDel(scope.row)">删除</el-button>
-        </template>
-      </el-table-column> -->
     </el-table>
     <!-- <el-pagination
       class="pagination"
@@ -33,9 +40,14 @@
 <script>
 export default {
   name: 'BaseTable',
-  props: ['columns']
+  props: ['columns'],
+  setup(props, { emit }) {
+    const handleAction = (index, row) => {
+      emit('handleAction', { index, row: { ...row } })
+    }
+    return {
+      handleAction
+    }
+  }
 }
 </script>
-
-<style lang="scss">
-</style>

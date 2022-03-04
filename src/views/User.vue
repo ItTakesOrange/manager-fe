@@ -38,6 +38,7 @@
       :data="userList"
       :columns="columns"
       @selection-change="handleSelectionChange"
+      @handleAction="handleAction"
     >
       <template v-slot:action>
           <el-button v-has="'user-create'" type="primary" @click="handleCreate">新增</el-button>
@@ -259,6 +260,21 @@ export default {
         formatter(row, column, value) {
           return utils.formatDate(new Date(value))
         }
+      },
+      {
+        type: 'action',
+        label: '操作',
+        width: 150,
+        list: [
+          {
+            type: 'primary',
+            text: '编辑'
+          },
+          {
+            type: 'danger',
+            text: '删除'
+          }
+        ]
       }
     ])
     // 初始化接口调用
@@ -363,6 +379,13 @@ export default {
         Object.assign(userForm, row)
       })
     }
+    const handleAction = ({ index, row }) => {
+      if (index === 0) {
+        handleEdit(row)
+      } else if (index === 1) {
+        handleDel(row)
+      }
+    }
     return {
       form,
       user,
@@ -386,7 +409,8 @@ export default {
       getDeptList,
       handleClose,
       handleSubmit,
-      handleEdit
+      handleEdit,
+      handleAction
     }
   }
 }
