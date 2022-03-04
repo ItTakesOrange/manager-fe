@@ -3,42 +3,13 @@
     <div class="query-form">
       <query-form v-model="user" :form="form" @handleQuery="handleQuery" />
     </div>
-    <!-- <div class="base-table">
-      <div class="action">
-        <el-button v-has="'user-create'" type="primary" @click="handleCreate">新增</el-button>
-        <el-button v-has="'user-patch-delete'" type="danger" @click="handleBatchDel">批量删除</el-button>
-      </div>
-      <el-table :data="userList" @selection-change="handleSelectionChange">
-        <el-table-column type="selection" width="55" />
-        <el-table-column
-          v-for="item in columns"
-          :key="item.prop"
-          :prop="item.prop"
-          :label="item.label"
-          :width="item.width"
-          :formatter="item.formatter"
-        ></el-table-column>
-        <el-table-column label="操作" width="150">
-          <template #default="scope">
-            <el-button v-has="'user-edit'" size="mini" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button v-has="'user-delete'" type="danger" size="mini" @click="handleDel(scope.row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-pagination
-        class="pagination"
-        background
-        layout="prev, pager, next"
-        :total="pager.total"
-        :page-size="pager.pageSize"
-        @current-change="handleCurrentChange"
-      />
-    </div> -->
     <base-table
       :data="userList"
       :columns="columns"
+      :pager="pager"
       @selection-change="handleSelectionChange"
       @handleAction="handleAction"
+      @handleCurrentChange="handleCurrentChange"
     >
       <template v-slot:action>
           <el-button v-has="'user-create'" type="primary" @click="handleCreate">新增</el-button>

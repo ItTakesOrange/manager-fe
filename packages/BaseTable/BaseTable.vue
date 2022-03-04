@@ -26,27 +26,31 @@
         </el-table-column>
       </template>
     </el-table>
-    <!-- <el-pagination
+    <el-pagination
       class="pagination"
       background
       layout="prev, pager, next"
       :total="pager.total"
       :page-size="pager.pageSize"
       @current-change="handleCurrentChange"
-    /> -->
+    />
   </div>
 </template>
 
 <script>
 export default {
   name: 'BaseTable',
-  props: ['columns'],
+  props: ['pager', 'columns'],
   setup(props, { emit }) {
     const handleAction = (index, row) => {
       emit('handleAction', { index, row: { ...row } })
     }
+    const handleCurrentChange = (pageNum) => {
+      emit('handleCurrentChange', pageNum)
+    }
     return {
-      handleAction
+      handleAction,
+      handleCurrentChange
     }
   }
 }
