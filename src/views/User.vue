@@ -3,7 +3,7 @@
     <div class="query-form">
       <query-form v-model="user" :form="form" @handleQuery="handleQuery" />
     </div>
-    <div class="base-table">
+    <!-- <div class="base-table">
       <div class="action">
         <el-button v-has="'user-create'" type="primary" @click="handleCreate">新增</el-button>
         <el-button v-has="'user-patch-delete'" type="danger" @click="handleBatchDel">批量删除</el-button>
@@ -33,7 +33,17 @@
         :page-size="pager.pageSize"
         @current-change="handleCurrentChange"
       />
-    </div>
+    </div> -->
+    <base-table
+      :data="userList"
+      :columns="columns"
+      @selection-change="handleSelectionChange"
+    >
+      <template v-slot:action>
+          <el-button v-has="'user-create'" type="primary" @click="handleCreate">新增</el-button>
+          <el-button v-has="'user-patch-delete'" type="danger" @click="handleBatchDel">批量删除</el-button>
+      </template>
+    </base-table>
     <el-dialog v-model="showModal" title="用户新增">
       <el-form ref="dialogForm" :model="userForm" label-width="100px" :rules="rules">
         <el-form-item label="用户名" prop="userName">
@@ -198,6 +208,9 @@ export default {
       ]
     })
     const columns = reactive([
+      {
+        type: 'selection'
+      },
       {
         label: '用户ID',
         prop: 'userId'

@@ -8,7 +8,7 @@ import request from './utils/request'
 import storage from './utils/storage'
 import api from './api'
 import store from './store'
-import QueryForm from '../packages/QueryForm'
+import Rocket from '../packages'
 
 console.log('config=>', config)
 console.log('环境配置=>', import.meta.env)
@@ -34,5 +34,5 @@ app
   .use(router)
   .use(store)
   .use(ElementPlus, { size: 'small' })
-  .use(QueryForm)
+  .use(Rocket)
   .mount('#app')
