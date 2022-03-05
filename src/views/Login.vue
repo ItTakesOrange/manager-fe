@@ -48,29 +48,12 @@ export default {
         if (valid) {
           this.$api.login(this.user).then(async (res) => {
             this.$store.commit('saveUserInfo', res)
-            await this.loadAsyncRoutes()
             this.$router.push('/welcome')
           })
         } else {
           return false
         }
       })
-    },
-    async loadAsyncRoutes() {
-      let userInfo = this.$storage.getItem('userInfo')
-      if (userInfo.token) {
-        try {
-          const { menuList } = await this.$api.getPermissionList()
-          let routes = utils.generateRoute(menuList)
-          routes.forEach(route => {
-            let url = `./../views/${route.component}.vue`
-            route.component = () => import(url)
-            this.$router.addRoute('home', route)
-          })
-        } catch (error) {
-          console.error('error', error)
-        }
-      }
     }
   }
 }

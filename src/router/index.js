@@ -63,7 +63,8 @@ async function loadAsyncRoutes() {
   }
 }
 
-await loadAsyncRoutes()
+
+// await loadAsyncRoutes()
 
 /*
 function checkPermission(path) {
@@ -71,12 +72,23 @@ function checkPermission(path) {
 }
 */
 
-router.beforeEach(function(to, from, next) {
-  if (router.hasRoute(to.name)) {
-    document.title = to.meta.title
-    next()
+router.beforeEach(async (to, from, next) => {
+  if (to.name) {
+    if (router.hasRoute(to.name)) {
+      document.title = to.meta.title
+      next()
+    } else {
+      next('/404')
+    }
   } else {
-    next('/404')
+    await loadAsyncRoutes()
+    let curRoute = router.getRoutes().filter(item => item.path === to.path)
+    if (curRoute?.length) {
+      document.title = curRoute[0].meta.title
+      next({ ...to, replace: true })
+    } else {
+      next('/404')
+    }
   }
 })
 
